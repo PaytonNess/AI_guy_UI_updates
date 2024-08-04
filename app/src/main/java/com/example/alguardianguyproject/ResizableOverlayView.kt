@@ -6,8 +6,11 @@ import android.view.MotionEvent
 import android.widget.FrameLayout
 import androidx.core.content.res.ResourcesCompat
 
-class ResizableOverlayView @JvmOverloads constructor(context: Context, attrs:
-AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrs, defStyleAttr) {
+class ResizableOverlayView @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0
+) : FrameLayout(context, attrs, defStyleAttr) {
 
     private var lastTouchX = 0f
     private var lastTouchY = 0f
@@ -57,3 +60,5 @@ AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrs, defSt
         private const val INVALID_POINTER_ID = -1
     }
 }
+
+

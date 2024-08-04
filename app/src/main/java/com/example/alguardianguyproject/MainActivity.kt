@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Rect
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
@@ -26,21 +28,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var resizableOverlay: ResizableOverlayView
     private var isRecording = false
     private val requestCodeScreenCapture = 1
+    private val OVERLAY_PERMISSION_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        resizableOverlay = findViewById(R.id.resizable_overlay)
-        setContent {
-            AlGuardianGuyProjectTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    RecordControlScreen()
-                }
-            }
+
+        checkOverlayPermission()
+    }
+
+    private fun checkOverlayPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE)
+        } else {
+            showOverlay()
         }
     }
 
@@ -51,8 +56,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
-            permissions ->
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             // Handle the results for each permission
             permissions.entries.forEach {
                 val permissionName = it.key
@@ -67,8 +71,7 @@ class MainActivity : AppCompatActivity() {
                 val mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     screenCaptureLauncher.launch(mediaProjectionManager.createScreenCaptureIntent())
-                }
-                else {
+                } else {
                     @Suppress("DEPRECATION") // Suppress deprecation warning for older API levels
                     startActivityForResult(
                         mediaProjectionManager.createScreenCaptureIntent(),
@@ -79,32 +82,37 @@ class MainActivity : AppCompatActivity() {
                 // Handle the case where some permissions are denied
                 Toast.makeText(this, "Screen recording requires audio permission", Toast.LENGTH_SHORT).show()
             }
-    }
+        }
 
-    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-
-        if (requestCode == requestCodeScreenCapture) {
-            if (resultCode == Activity.RESULT_OK && data != null) {
-                // Screen capture permission granted, proceed with obtaining MediaProjection
-                val result = ActivityResult(resultCode, data)
-                startScreenRecording(data, result)
+        if (requestCode == OVERLAY_PERMISSION_REQUEST_CODE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (Settings.canDrawOverlays(this)) {
+                showOverlay()
             } else {
-                // Handle the case where some permissions are denied
-                Toast.makeText(this, "Screen recording requires audio permission", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Permission not granted", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showOverlay() {
+        val intent = Intent(this, OverlayService::class.java)
+        startService(intent)
+    }
+
+    private fun startScreenCapture() {
+        val mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        val screenCaptureIntent = mediaProjectionManager.createScreenCaptureIntent()
+
+        screenCaptureLauncher.launch(screenCaptureIntent)
     }
 
     private val screenCaptureLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-
             // Handle successful screen capture permission grant
             val intentData = result.data ?: return@registerForActivityResult
-
             startScreenRecording(intentData, result)
         } else {
             // Handle permission denial
@@ -114,8 +122,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun startScreenRecording(intentData: Intent, result: ActivityResult) {
         // Handle successful screen capture permission grant
-
-        // Start screen recording using intentData
         val recordIntent = Intent(this, ScreenRecordService::class.java).apply {
             action = ScreenRecordService.ACTION_START
             putExtra(ScreenRecordService.EXTRA_RESULT_CODE, result.resultCode)
@@ -133,11 +139,9 @@ class MainActivity : AppCompatActivity() {
         updateRecordingUI()
     }
 
-    // Helper function to update UI based on recording state
     private fun updateRecordingUI() {
         // Update UI elements, e.g., toggle button states, show/hide overlays, etc.
         resizableOverlay.visibility = if (isRecording) View.VISIBLE else View.GONE
-        // Update other UI elements as needed
     }
 
     fun startRecording() {
@@ -154,8 +158,7 @@ class MainActivity : AppCompatActivity() {
                 requestPermissionLauncher.launch(arrayOf(
                     android.Manifest.permission.RECORD_AUDIO
                 ))
-            }
-            else {
+            } else {
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.RECORD_AUDIO), requestCodeScreenCapture)
             }
         }
