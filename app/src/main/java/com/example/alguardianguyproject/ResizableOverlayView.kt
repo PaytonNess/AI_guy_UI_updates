@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.content.res.ResourcesCompat
 import android.view.WindowManager
+import android.widget.LinearLayout
 
 class ResizableOverlayView @JvmOverloads constructor(
     context: Context,
@@ -24,6 +25,8 @@ class ResizableOverlayView @JvmOverloads constructor(
     private lateinit var startButton: Button
     private lateinit var stopButton: Button
 
+    private lateinit var buttonContainer: LinearLayout
+
     init {
         // Set transparent background with border
         setBackgroundColor(ResourcesCompat.getColor(resources, android.R.color.transparent, null))
@@ -34,6 +37,10 @@ class ResizableOverlayView @JvmOverloads constructor(
     }
 
     private fun addButtons(context: Context) {
+        buttonContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+        }
+
         startButton = Button(context).apply {
             text = "Start Recording"
             setOnClickListener {
@@ -50,15 +57,13 @@ class ResizableOverlayView @JvmOverloads constructor(
             }
         }
 
-        // Add buttons to the FrameLayout
-        addView(startButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-            marginStart = 16
-            topMargin = 16
-        })
+        // Add buttons to the button container
+        buttonContainer.addView(startButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        buttonContainer.addView(stopButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
 
-        addView(stopButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-            marginStart = 16
-            topMargin = 80
+        // Add button container to the FrameLayout
+        addView(buttonContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = android.view.Gravity.BOTTOM
         })
     }
 
@@ -85,10 +90,6 @@ class ResizableOverlayView @JvmOverloads constructor(
                     // Resize the view
                     params.width = (width + dx).toInt().coerceAtLeast(minWidth)
                     params.height = (height + dy).toInt().coerceAtLeast(minHeight)
-                    (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).updateViewLayout(this@ResizableOverlayView, params)
-
-                    // Resize buttons
-                    resizeButtons()
                 } else {
                     // Move the view
                     val newX = (params.x + dx).toInt().coerceIn(0, (context.resources.displayMetrics.widthPixels - params.width))
@@ -96,8 +97,9 @@ class ResizableOverlayView @JvmOverloads constructor(
 
                     params.x = newX
                     params.y = newY
-                    (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).updateViewLayout(this@ResizableOverlayView, params)
                 }
+
+                (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).updateViewLayout(this@ResizableOverlayView, params)
 
                 lastTouchX = x
                 lastTouchY = y
@@ -110,30 +112,8 @@ class ResizableOverlayView @JvmOverloads constructor(
     }
 
     private fun isInResizeRange(x: Float, y: Float): Boolean {
-        val threshold = 50
+        val threshold = 100 // Increase threshold for easier resizing
         return (x > width - threshold && y > height - threshold)
-    }
-
-    private fun resizeButtons() {
-        // Ensure buttons are resized proportionally
-        val buttonMargin = 16
-        val buttonWidth = (width - buttonMargin * 2) / 2
-        val buttonHeight = (height - buttonMargin * 3) / 2
-
-        if (buttonWidth > 0 && buttonHeight > 0) {
-            startButton.layoutParams = LayoutParams(buttonWidth, buttonHeight).apply {
-                marginStart = buttonMargin
-                topMargin = buttonMargin
-            }
-
-            stopButton.layoutParams = LayoutParams(buttonWidth, buttonHeight).apply {
-                marginStart = buttonMargin
-                topMargin = buttonMargin + buttonHeight + buttonMargin
-            }
-
-            startButton.requestLayout()
-            stopButton.requestLayout()
-        }
     }
 
     companion object {
