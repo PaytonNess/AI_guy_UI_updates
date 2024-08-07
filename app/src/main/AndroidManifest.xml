@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <!-- Permissions -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION"/>
@@ -16,26 +17,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AlGuardianGuyProject"
         tools:targetApi="31">
+
+        <!-- Overlay Service -->
+        <service
+            android:name=".OverlayService"
+            android:permission="android.permission.SYSTEM_ALERT_WINDOW"
+            android:exported="true">
+        </service>
+
+        <!-- Screen Record Service -->
         <service
             android:name=".ScreenRecordService"
             android:foregroundServiceType="mediaProjection"
-            >
+            android:exported="true">
         </service>
 
+        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.AlGuardianGuyProject"
             android:supportsPictureInPicture="true"
-            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation"
-            >
+            android:configChanges="screenSize|smallestScreenSize|screenLayout|orientation">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
-
 </manifest>

@@ -13,19 +13,12 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
-import com.example.alguardianguyproject.ui.theme.AlGuardianGuyProjectTheme
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var resizableOverlay: ResizableOverlayView
     private var isRecording = false
     private val requestCodeScreenCapture = 1
     private val OVERLAY_PERMISSION_REQUEST_CODE = 100
@@ -46,12 +39,6 @@ class MainActivity : AppCompatActivity() {
             startActivityForResult(intent, OVERLAY_PERMISSION_REQUEST_CODE)
         } else {
             showOverlay()
-        }
-    }
-
-    override fun onUserLeaveHint() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            enterPictureInPictureMode(PictureInPictureParams.Builder().build())
         }
     }
 
@@ -141,7 +128,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateRecordingUI() {
         // Update UI elements, e.g., toggle button states, show/hide overlays, etc.
-        resizableOverlay.visibility = if (isRecording) View.VISIBLE else View.GONE
+        // Handle overlay visibility in the service
     }
 
     fun startRecording() {
@@ -173,14 +160,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getOverlayRect(): Rect {
-        val location = IntArray(2)
-        resizableOverlay.getLocationOnScreen(location)
-        return Rect(
-            location[0],
-            location[1],
-            location[0] + resizableOverlay.width,
-            location[1] + resizableOverlay.height
-        )
+        // Use a default Rect if needed
+        return Rect(0, 0, 100, 100)
     }
 
     override fun onPause() {
