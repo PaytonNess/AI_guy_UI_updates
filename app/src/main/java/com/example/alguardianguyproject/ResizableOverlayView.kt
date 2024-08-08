@@ -2,12 +2,17 @@ package com.example.alguardianguyproject
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.content.res.ResourcesCompat
 import android.view.WindowManager
+import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.alguardianguyproject.chat.MessageAdapter
 
 class ResizableOverlayView @JvmOverloads constructor(
     context: Context,
@@ -27,6 +32,10 @@ class ResizableOverlayView @JvmOverloads constructor(
 
     private lateinit var buttonContainer: LinearLayout
 
+    private lateinit var chatRecyclerView: RecyclerView
+    lateinit var messageInput: EditText
+    lateinit var sendButton: Button
+
     init {
         // Set transparent background with border
         setBackgroundColor(ResourcesCompat.getColor(resources, android.R.color.transparent, null))
@@ -34,6 +43,43 @@ class ResizableOverlayView @JvmOverloads constructor(
 
         // Add buttons to the view
         addButtons(context)
+        addChatComponents(context)
+    }
+
+    private fun addChatComponents(context: Context) {
+        chatRecyclerView = RecyclerView(context).apply {
+            adapter = this.adapter
+            layoutManager = LinearLayoutManager(context)
+        }
+        messageInput = EditText(context).apply {
+            hint = "Enter message"
+        }
+
+        sendButton = Button(context).apply {
+            text = "Send"
+        }
+
+        // Add chat components to the FrameLayout (adjust layout params as needed)
+        addView(chatRecyclerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
+            topMargin = 16
+        })
+
+        addView(messageInput, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = Gravity.BOTTOM or Gravity.START // Align to bottom left
+            bottomMargin = 16 // Add some margin to the bottom (optional)
+            rightMargin = 64 // Make space for the send button (optional)
+            messageInput.post { messageInput.requestFocus() }
+        })
+
+        addView(sendButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = Gravity.BOTTOM or Gravity.END // Align to bottom right
+            bottomMargin = 16 // Add some margin to the bottom (optional)
+        })
+    }
+
+    // Add a method to set the adapter for the RecyclerView
+    fun setChatAdapter(adapter: RecyclerView.Adapter<*>) {
+        chatRecyclerView.adapter = adapter
     }
 
     private fun addButtons(context: Context) {

@@ -9,4 +9,8 @@
     <string name="image3_description">Cake</string>
     <string name="results_placeholder">(Results will appear here)</string>
     <string name="recording">Recording...</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="enter_message">Enter message</string>
+    <string name="send">Send</string>
 </resources>

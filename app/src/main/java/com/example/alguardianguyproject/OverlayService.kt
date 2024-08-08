@@ -8,12 +8,20 @@ import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
-import android.widget.FrameLayout
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelStore
+import androidx.lifecycle.ViewModelStoreOwner
+import com.example.alguardianguyproject.chat.ChatViewModel
+import com.example.alguardianguyproject.chat.MessageAdapter
 
-class OverlayService : Service() {
+class OverlayService : Service(), ViewModelStoreOwner {
 
     private lateinit var windowManager: WindowManager
     private lateinit var overlayView: ResizableOverlayView
+
+    private lateinit var chatViewModel: ChatViewModel
+    private lateinit var messageAdapter: MessageAdapter
+    private val appViewModelStore: ViewModelStore by lazy { ViewModelStore() }
 
     override fun onBind(intent: Intent): IBinder? {
         return null
@@ -39,6 +47,31 @@ class OverlayService : Service() {
 
         overlayView = ResizableOverlayView(this)
         windowManager.addView(overlayView, params)
+
+        // Initialize ViewModel
+        chatViewModel = ViewModelProvider(
+            this,
+            ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+        ).get(ChatViewModel::class.java)
+
+        // Initialize MessageAdapter
+        messageAdapter = MessageAdapter() // Start with an empty list
+
+        overlayView.setChatAdapter(messageAdapter)
+
+        // Observe messages from ViewModel
+        chatViewModel.messages.observeForever { messages ->
+            messageAdapter.updateMessages(messages)
+        }
+
+        // Set up send button click listener
+        overlayView.sendButton.setOnClickListener {
+            val newMessageText = overlayView.messageInput.text.toString()
+            if (newMessageText.isNotBlank()) {
+                chatViewModel.sendMessage(newMessageText)
+                overlayView.messageInput.text.clear()
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -46,5 +79,9 @@ class OverlayService : Service() {
         if (this::overlayView.isInitialized) {
             windowManager.removeView(overlayView)
         }
+        appViewModelStore.clear()
     }
+
+    override val viewModelStore: ViewModelStore
+        get() = appViewModelStore
 }

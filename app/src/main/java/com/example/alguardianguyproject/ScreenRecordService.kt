@@ -1,5 +1,6 @@
 package com.example.alguardianguyproject
 
+import android.Manifest
 import android.app.Activity
 import android.app.Notification
 import android.app.NotificationChannel
@@ -8,17 +9,30 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioPlaybackCaptureConfiguration
+import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.IBinder
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import java.io.File
+import java.io.FileOutputStream
 
 class ScreenRecordService : Service() {
     private lateinit var mediaProjection: MediaProjection
@@ -26,6 +40,13 @@ class ScreenRecordService : Service() {
     private var virtualDisplay: VirtualDisplay? = null
     private var mediaRecorder: MediaRecorder? = null
     private var isRecording = false
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var videoPath = ""
+    private var audioPath = ""
+    private var audioRecord: AudioRecord? = null
+    private var audioThread: Thread? = null
+    private var isAudioRecording = false
+    private lateinit var viewModel: RecordViewModel
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -33,6 +54,7 @@ class ScreenRecordService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
+                viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(RecordViewModel::class.java)
                 val data = if (Build.VERSION.SDK_INT >= TIRAMISU) {
                     intent.getParcelableExtra(EXTRA_DATA, Intent::class.java)
                 } else {
@@ -74,7 +96,7 @@ class ScreenRecordService : Service() {
             @Suppress("DEPRECATION")
             intent.getParcelableExtra(EXTRA_RECORD_RECT)
         }
-
+        videoPath = getOutputFile()
         mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             MediaRecorder(applicationContext)
         } else {
@@ -87,7 +109,7 @@ class ScreenRecordService : Service() {
             setVideoEncodingBitRate(512 * 1000)
             setVideoFrameRate(30)
             setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT) // TODO: Use rectangle width and height
-            setOutputFile(getOutputFile())
+            setOutputFile(videoPath)
             prepare()
         }
 
@@ -100,6 +122,63 @@ class ScreenRecordService : Service() {
 
         mediaRecorder?.start()
         isRecording = true
+
+        // Audio Recording Setup (Android 10+):
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startAudioRecording(mediaProjection)
+        }
+    }
+
+    private fun startAudioRecording(mediaProjection: MediaProjection) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (ActivityCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.RECORD_AUDIO
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
+                    .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
+
+            val audioBufferSize = AudioRecord.getMinBufferSize(
+                32000, // Sample rate
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT
+            )
+
+            audioRecord = AudioRecord.Builder()
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setSampleRate(32000)
+                        .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                        .build()
+                )
+                .setAudioPlaybackCaptureConfig(config)
+                .setBufferSizeInBytes(audioBufferSize * 2)
+                .build()
+
+            audioRecord?.startRecording()
+            isAudioRecording = true
+            println("audioRecord: $audioRecord")
+            audioThread = Thread {
+                audioPath = getAudioPcmOutputFile()
+                val audioData = ByteArray(audioBufferSize)
+                val outputStream = FileOutputStream(audioPath)
+
+                while (isAudioRecording && serviceScope.isActive) {
+                    val bytesRead = audioRecord?.read(audioData, 0, audioBufferSize) ?: 0
+                    if (bytesRead > 0) {
+                        println("bytesRead: $bytesRead")
+                        outputStream.write(audioData, 0, bytesRead) // Write audio data to file
+                    }
+                }
+                outputStream.close() // Close the output stream when done
+            }
+            audioThread?.start()
+        }
     }
 
     private fun stopRecording() {
@@ -109,12 +188,30 @@ class ScreenRecordService : Service() {
             virtualDisplay?.release()
             mediaProjection.stop()
             isRecording = false
+            viewModel.uploadVideo(videoPath)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                isAudioRecording = false
+                audioRecord?.stop()
+                audioRecord?.release()
+                audioThread?.join() // Wait for audio thread to finish
+                audioRecord = null
+                audioThread = null
+                viewModel.uploadAudio(audioPath, getAudioMp3OutputFile())
+            }
         }
     }
 
     private fun getOutputFile(): String {
         val fileName = "screen_record_${System.currentTimeMillis()}.mp4"
-        return File(getExternalFilesDir(null), fileName).absolutePath
+        return File(filesDir, fileName).absolutePath
+    }
+    private fun getAudioPcmOutputFile(): String {
+        val fileName = "audio_record_${System.currentTimeMillis()}.pcm"
+        return File(filesDir, fileName).absolutePath
+    }
+    private fun getAudioMp3OutputFile(): String {
+        val fileName = "audio_record_${System.currentTimeMillis()}.mp3"
+        return File(filesDir, fileName).absolutePath
     }
 
     private fun createNotification(): Notification {
@@ -140,6 +237,11 @@ class ScreenRecordService : Service() {
             .setSmallIcon(R.drawable.baked_goods_1) // TODO: Replace with recording icon
             .setContentIntent(pendingIntent)
             .build()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel() // Cancel all coroutines in the scope
     }
 
     companion object {
