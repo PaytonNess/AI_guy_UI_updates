@@ -42,4 +42,13 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
             }
         }
     }
+
+    fun setVideoTranscription(transcription: String) {
+        videoTranscription = transcription
+    }
+
+    fun reset() {
+        _messages.value = emptyList()
+        videoTranscription = ""
+    }
 }

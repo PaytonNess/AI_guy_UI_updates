@@ -1,15 +1,25 @@
 package com.example.alguardianguyproject
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.MotionEvent
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.content.res.ResourcesCompat
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.alguardianguyproject.chat.MessageAdapter
@@ -24,57 +34,111 @@ class ResizableOverlayView @JvmOverloads constructor(
     private var lastTouchY = 0f
     private var activePointerId = INVALID_POINTER_ID
 
-    private val minWidth = 200
-    private val minHeight = 200
+    private val minWidth = 400
+    private val minHeight = 400
 
-    private lateinit var startButton: Button
-    private lateinit var stopButton: Button
+    lateinit var startButton: Button
 
     private lateinit var buttonContainer: LinearLayout
+    private lateinit var chatContainer: LinearLayout
+    private lateinit var loadingContainer: LinearLayout
+    private lateinit var closeContainer: LinearLayout
+    private lateinit var backContainer: LinearLayout
 
     private lateinit var chatRecyclerView: RecyclerView
     lateinit var messageInput: EditText
     lateinit var sendButton: Button
+    lateinit var backButton: Button
+    lateinit var closeButton: Button
+
+    lateinit var recyclerView: RecyclerView
+    lateinit var chatButton: Button
 
     init {
+
         // Set transparent background with border
         setBackgroundColor(ResourcesCompat.getColor(resources, android.R.color.transparent, null))
         background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border, null)
-
+        minimumWidth = minWidth
+        minimumHeight = minHeight
         // Add buttons to the view
-        addButtons(context)
-        addChatComponents(context)
+        initChatComponents(context)
+        initRecordComponents(context)
+        initLoadingComponents(context)
+        initCloseButton(context)
+
+        addCloseButton()
+        addRecordComponents()
     }
 
-    private fun addChatComponents(context: Context) {
-        chatRecyclerView = RecyclerView(context).apply {
-            adapter = this.adapter
-            layoutManager = LinearLayoutManager(context)
+    private fun initChatComponents(context: Context) {
+        chatContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
         }
-        messageInput = EditText(context).apply {
-            hint = "Enter message"
+        val inflater = LayoutInflater.from(context).inflate(R.layout.activity_chat, chatContainer, true)
+        chatRecyclerView = inflater.findViewById<RecyclerView>(R.id.message_list)
+        chatRecyclerView.layoutManager = LinearLayoutManager(context)
+        messageInput = inflater.findViewById<EditText>(R.id.message_input)
+        sendButton = inflater.findViewById<Button>(R.id.send_button)
+        backButton = inflater.findViewById<Button>(R.id.back_button)
+    }
+
+    private fun initCloseButton(context: Context) {
+        closeContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
         }
+        val inflater = LayoutInflater.from(context).inflate(R.layout.close_button, closeContainer, true)
+        closeButton = inflater.findViewById<Button>(R.id.CloseButton)
+    }
 
-        sendButton = Button(context).apply {
-            text = "Send"
+    private fun addCloseButton() {
+        addView(closeContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = Gravity.TOP or Gravity.END
+        })
+    }
+
+    fun removeCloseButton() {
+        removeView(closeContainer)
+    }
+
+    fun addChatComponents() {
+        addView(chatContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
+            gravity = Gravity.BOTTOM
+        })
+        background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border, null)
+    }
+
+    fun removeChatComponents() {
+        removeView(chatContainer)
+    }
+
+    fun removeLoadingComponents() {
+        removeView(loadingContainer)
+    }
+
+    fun removeRecordComponents() {
+        removeView(buttonContainer)
+    }
+
+    private fun initLoadingComponents(context: Context) {
+        loadingContainer = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
         }
+        val inflater = LayoutInflater.from(context).inflate(R.layout.activity_record, loadingContainer, true)
+        recyclerView = inflater.findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(context)
+        chatButton = inflater.findViewById<Button>(R.id.chatButton)
+    }
 
-        // Add chat components to the FrameLayout (adjust layout params as needed)
-        addView(chatRecyclerView, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
-            topMargin = 16
+    fun addLoadingComponents() {
+        addView(loadingContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = Gravity.BOTTOM
         })
-
-        addView(messageInput, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-            gravity = Gravity.BOTTOM or Gravity.START // Align to bottom left
-            bottomMargin = 16 // Add some margin to the bottom (optional)
-            rightMargin = 64 // Make space for the send button (optional)
-            messageInput.post { messageInput.requestFocus() }
-        })
-
-        addView(sendButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-            gravity = Gravity.BOTTOM or Gravity.END // Align to bottom right
-            bottomMargin = 16 // Add some margin to the bottom (optional)
-        })
+        background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border_colored, null)
     }
 
     // Add a method to set the adapter for the RecyclerView
@@ -82,35 +146,29 @@ class ResizableOverlayView @JvmOverloads constructor(
         chatRecyclerView.adapter = adapter
     }
 
-    private fun addButtons(context: Context) {
+    private fun initRecordComponents(context: Context) {
         buttonContainer = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
         }
+        val inflater1 = LayoutInflater.from(context).inflate(R.layout.send_button, buttonContainer, true)
+        startButton = inflater1.findViewById<Button>(R.id.SendButton)
+        startButton.text = "Record"
+    }
 
-        startButton = Button(context).apply {
-            text = "Start Recording"
-            setOnClickListener {
-                // Start recording logic
-                (context as? MainActivity)?.startRecording()
-            }
-        }
-
-        stopButton = Button(context).apply {
-            text = "Stop Recording"
-            setOnClickListener {
-                // Stop recording logic
-                (context as? MainActivity)?.stopRecording()
-            }
-        }
-
-        // Add buttons to the button container
-        buttonContainer.addView(startButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-        buttonContainer.addView(stopButton, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
-
+    fun addRecordComponents() {
         // Add button container to the FrameLayout
         addView(buttonContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-            gravity = android.view.Gravity.BOTTOM
+            gravity = Gravity.BOTTOM
         })
+        background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border, null)
+    }
+
+    fun switchToStopButton() {
+        startButton.text = "Stop"
+    }
+
+    fun switchToStartButton() {
+        startButton.text = "Record"
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

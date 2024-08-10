@@ -2,4 +2,6 @@
 <resources>
 
     <style name="Theme.AlGuardianGuyProject" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="AppTheme.Translucent" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">#10000000</item> </style>
 </resources>

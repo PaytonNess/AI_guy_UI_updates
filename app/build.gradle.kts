@@ -78,4 +78,5 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
     implementation(libs.mobile.ffmpeg.full)
+    implementation(libs.androidx.core.google.shortcuts)
 }

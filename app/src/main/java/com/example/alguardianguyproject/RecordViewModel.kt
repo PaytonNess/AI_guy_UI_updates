@@ -1,5 +1,9 @@
 package com.example.alguardianguyproject
 
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arthenica.mobileffmpeg.Config
@@ -18,12 +22,12 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 
-class RecordViewModel: ViewModel() {
+class RecordViewModel(application: Application): AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow<Int>(0)
-    val uiState: StateFlow<Int> = _uiState.asStateFlow()
-    private val _progress = MutableStateFlow<Double>(0.0)
-    val progress: StateFlow<Double> = _progress.asStateFlow()
+    private val _completedStages = MutableLiveData<List<Int>>(List(10) { 0 })
+    val completedStages: LiveData<List<Int>> = _completedStages
+    private val _progress = MutableLiveData<Double>(0.0)
+    val progress: LiveData<Double> = _progress
     private val repository = VideoDiscussionRepository()
     private val fileManagement = FileManagementRepository()
     private var videoName = ""
@@ -50,7 +54,7 @@ class RecordViewModel: ViewModel() {
                     videoUri = response.uri
                     videoName = response.name
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 1
+                        updateCompletedStage(0, 1)
                     }
                 }
             } catch(e: Exception) {
@@ -85,15 +89,12 @@ class RecordViewModel: ViewModel() {
                     val multipartBody =
                         MultipartBody.Part.createFormData("mediaFile", audioFile.name, requestBody)
                     viewModelScope.launch() {
-                        withContext(Dispatchers.Main) {
-                            _uiState.value = 2
-                        }
                         val response = repository.uploadVideo(multipartBody)
                         if (response != null) {
                             audioUri = response.uri
                             audioName = response.name
                             withContext(Dispatchers.Main) {
-                                _uiState.value = 3
+                                updateCompletedStage(1, 1)
                             }
                         }
                     }
@@ -160,7 +161,7 @@ class RecordViewModel: ViewModel() {
             videoTranscription = transcriptionResponse
             if (transcriptionResponse.isNotEmpty()) {
                 withContext(Dispatchers.Main) {
-                    _uiState.value = 4
+                    updateCompletedStage(2, 1)
                 }
             }
 
@@ -169,7 +170,7 @@ class RecordViewModel: ViewModel() {
                 println("delete local video response: $response")
                 if (response) {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 5
+                        updateCompletedStage(5, 1)
                     }
                 }
             }
@@ -178,16 +179,16 @@ class RecordViewModel: ViewModel() {
                 println("delete video response: $response")
                 if (response == "SUCCESS") {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 10
+                        updateCompletedStage(3, 1)
                     }
                 }
             }
             if (audioPcmPath.isNotEmpty()) {
                 val response = fileManagement.deleteFile(audioPcmPath)
                 println("delete pcm audio response: $response")
-                if (response) {
+                if (!response) {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 7
+                        updateCompletedStage(6, -1)
                     }
                 }
             }
@@ -196,7 +197,7 @@ class RecordViewModel: ViewModel() {
                 println("delete mp3 audio response: $response")
                 if (response) {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 8
+                        updateCompletedStage(6, 1)
                     }
                 }
             }
@@ -205,10 +206,35 @@ class RecordViewModel: ViewModel() {
                 println("delete audio response: $response")
                 if (response == "SUCCESS") {
                     withContext(Dispatchers.Main) {
-                        _uiState.value = 9
+                        updateCompletedStage(4, 1)
                     }
                 }
             }
         }
+    }
+
+    private fun updateCompletedStage(index: Int, isCompleted: Int) {
+        val updatedList = _completedStages.value?.toMutableList() ?: mutableListOf()
+        if (index in updatedList.indices) {
+            updatedList[index] = isCompleted
+            _completedStages.value = updatedList
+        }
+    }
+
+    fun getVideoTranscription(): String {
+        return videoTranscription
+    }
+    
+    fun reset() {
+        _completedStages.value = List(10) { 0 }
+        _progress.value = 0.0
+        videoName = ""
+        videoUri = ""
+        audioName = ""
+        audioUri = ""
+        videoPath = ""
+        audioMp3Path = ""
+        audioPcmPath = ""
+        videoTranscription = ""
     }
 }

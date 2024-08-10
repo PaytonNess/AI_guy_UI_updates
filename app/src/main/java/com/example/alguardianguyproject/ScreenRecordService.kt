@@ -54,16 +54,21 @@ class ScreenRecordService : Service() {
         when (intent?.action) {
             ACTION_START -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED)
-                viewModel = ViewModelProvider.AndroidViewModelFactory.getInstance(application).create(RecordViewModel::class.java)
+                viewModel = ViewModelProvider(
+                    MyApplication.sharedViewModelStoreOwner,
+                    ViewModelProvider.AndroidViewModelFactory.getInstance(application)
+                )[RecordViewModel::class.java]
                 val data = if (Build.VERSION.SDK_INT >= TIRAMISU) {
                     intent.getParcelableExtra(EXTRA_DATA, Intent::class.java)
                 } else {
                     @Suppress("DEPRECATION")
                     intent.getParcelableExtra(EXTRA_DATA)
                 }
-
+                println("resultCode: $resultCode")
+                println("data: $data")
                 if (resultCode == Activity.RESULT_OK && data != null) {
                     // Initialize MediaProjection and start recording
+                    println("made it to start recording")
                     mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
 
                     val notification = createNotification()
@@ -78,7 +83,7 @@ class ScreenRecordService : Service() {
                             stopRecording()
                         }
                     }, null)
-
+                    println("mediaProjection: $mediaProjection")
                     // 2. Start Recording Logic:
                     startRecording(intent, mediaProjection)
                 }
@@ -90,11 +95,18 @@ class ScreenRecordService : Service() {
 
     private fun startRecording(intent: Intent, mediaProjection: MediaProjection) {
         // Start the service in the foreground
-        val rect = if (Build.VERSION.SDK_INT >= TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_RECORD_RECT, Rect::class.java)
+        println("start recording in screen record service")
+        val data = if (Build.VERSION.SDK_INT >= TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_DATA, Intent::class.java)
         } else {
             @Suppress("DEPRECATION")
-            intent.getParcelableExtra(EXTRA_RECORD_RECT)
+            intent.getParcelableExtra(EXTRA_DATA)
+        }
+        val rect = if (Build.VERSION.SDK_INT >= TIRAMISU) {
+            data?.getParcelableExtra<Rect>(EXTRA_RECORD_RECT, Rect::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            data?.getParcelableExtra(EXTRA_RECORD_RECT)
         }
         videoPath = getOutputFile()
         mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -108,8 +120,11 @@ class ScreenRecordService : Service() {
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             setVideoEncodingBitRate(512 * 1000)
             setVideoFrameRate(30)
-            setVideoSize(DISPLAY_WIDTH, DISPLAY_HEIGHT) // TODO: Use rectangle width and height
+            setVideoSize(rect?.width() ?: DISPLAY_WIDTH, rect?.height() ?: DISPLAY_HEIGHT) // TODO: Use rectangle width and height
             setOutputFile(videoPath)
+            if (rect != null) {
+                setLocation(rect.exactCenterX(), rect.exactCenterY())
+            }
             prepare()
         }
 
@@ -252,7 +267,7 @@ class ScreenRecordService : Service() {
         const val DISPLAY_WIDTH = 720
         const val DISPLAY_HEIGHT = 1280
         const val DISPLAY_DPI = 1
-        const val EXTRA_RECORD_RECT = "RECORD_RECT"
+        const val EXTRA_RECORD_RECT = "RECT"
         const val CHANNEL_ID = "screen_recording_channel"
         const val NOTIFICATION_ID =1
     }

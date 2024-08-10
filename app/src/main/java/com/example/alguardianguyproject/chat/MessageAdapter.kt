@@ -10,12 +10,12 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>(){
     private var messages: List<Message> = emptyList() // Initially empty
 
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val messageItemView: MessageItemView = itemView.findViewById(R.id.message_text)
+        val messageItemView: MessageItemView = itemView.findViewById(R.id.message_item_view)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.message_item, parent, false) // Use your message item layout
+            .inflate(R.layout.message_item_view, parent, false) // Use your message item layout
         return MessageViewHolder(itemView)
     }
 

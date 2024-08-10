@@ -1,7 +1,7 @@
 <!-- res/drawable/resizable_border.xml -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <solid
-        android:color="@android:color/transparent"
+        android:color="@color/transparent_blue"
         android:radius="8dp" />
     <stroke
         android:width="4dp"
