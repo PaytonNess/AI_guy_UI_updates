@@ -26,6 +26,7 @@ import com.example.alguardianguyproject.chat.MessageAdapter
 
 class ResizableOverlayView @JvmOverloads constructor(
     context: Context,
+    private val windowManager: WindowManager, // Add this
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
@@ -174,39 +175,32 @@ class ResizableOverlayView @JvmOverloads constructor(
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                val x = event.x
-                val y = event.y
-                lastTouchX = x
-                lastTouchY = y
+                lastTouchX = event.rawX
+                lastTouchY = event.rawY
                 activePointerId = event.getPointerId(0)
             }
             MotionEvent.ACTION_MOVE -> {
-                val pointerIndex = event.findPointerIndex(activePointerId)
-                val x = event.getX(pointerIndex)
-                val y = event.getY(pointerIndex)
+                if (activePointerId != INVALID_POINTER_ID) {
+                    val pointerIndex = event.findPointerIndex(activePointerId)
+                    val x = event.rawX
+                    val y = event.rawY
 
-                val dx = x - lastTouchX
-                val dy = y - lastTouchY
+                    val dx = x - lastTouchX
+                    val dy = y - lastTouchY
 
-                val params = layoutParams as WindowManager.LayoutParams
+                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                        val params = layoutParams as WindowManager.LayoutParams
 
-                if (isInResizeRange(x, y)) {
-                    // Resize the view
-                    params.width = (width + dx).toInt().coerceAtLeast(minWidth)
-                    params.height = (height + dy).toInt().coerceAtLeast(minHeight)
-                } else {
-                    // Move the view
-                    val newX = (params.x + dx).toInt().coerceIn(0, (context.resources.displayMetrics.widthPixels - params.width))
-                    val newY = (params.y + dy).toInt().coerceIn(0, (context.resources.displayMetrics.heightPixels - params.height))
+                        // Move the view
+                        params.x += dx.toInt()
+                        params.y += dy.toInt()
 
-                    params.x = newX
-                    params.y = newY
+                        windowManager.updateViewLayout(this, params)
+
+                        lastTouchX = x
+                        lastTouchY = y
+                    }
                 }
-
-                (context.getSystemService(Context.WINDOW_SERVICE) as WindowManager).updateViewLayout(this@ResizableOverlayView, params)
-
-                lastTouchX = x
-                lastTouchY = y
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 activePointerId = INVALID_POINTER_ID
@@ -214,6 +208,7 @@ class ResizableOverlayView @JvmOverloads constructor(
         }
         return true
     }
+
 
     private fun isInResizeRange(x: Float, y: Float): Boolean {
         val threshold = 100 // Increase threshold for easier resizing

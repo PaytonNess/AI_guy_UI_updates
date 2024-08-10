@@ -55,7 +55,7 @@ class OverlayService : Service() {
         params.x = 0
         params.y = 100
 
-        overlayView = ResizableOverlayView(this)
+        overlayView = ResizableOverlayView(this, windowManager)
         windowManager.addView(overlayView, params)
 
         // Initialize ViewModel
