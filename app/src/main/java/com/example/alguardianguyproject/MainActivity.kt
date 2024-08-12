@@ -12,8 +12,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_main)
-        window.decorView.setBackgroundColor(Color.GREEN)
     }
 
     override fun onStart() {
@@ -48,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         Intent(this, OverlayService::class.java).also { intent ->
             startService(intent)
         }
-        //finish()
+        finish()
     }
 
     override fun onPause() {
