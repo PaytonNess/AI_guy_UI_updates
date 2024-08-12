@@ -10,7 +10,9 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PixelFormat
 import android.graphics.Rect
+import android.graphics.SurfaceTexture
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.AudioAttributes
@@ -23,6 +25,13 @@ import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.IBinder
+import android.view.Surface
+import android.view.SurfaceHolder
+import android.view.SurfaceView
+import android.view.TextureView
+import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModelProvider
@@ -64,6 +73,13 @@ class ScreenRecordService : Service() {
                     @Suppress("DEPRECATION")
                     intent.getParcelableExtra(EXTRA_DATA)
                 }
+                val rect = if (Build.VERSION.SDK_INT >= TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_RECORD_RECT, Rect::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(EXTRA_RECORD_RECT)
+                }
+                println("onStartCommand rect: $rect")
                 println("resultCode: $resultCode")
                 println("data: $data")
                 if (resultCode == Activity.RESULT_OK && data != null) {
@@ -95,18 +111,11 @@ class ScreenRecordService : Service() {
 
     private fun startRecording(intent: Intent, mediaProjection: MediaProjection) {
         // Start the service in the foreground
-        println("start recording in screen record service")
-        val data = if (Build.VERSION.SDK_INT >= TIRAMISU) {
-            intent.getParcelableExtra(EXTRA_DATA, Intent::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(EXTRA_DATA)
-        }
         val rect = if (Build.VERSION.SDK_INT >= TIRAMISU) {
-            data?.getParcelableExtra<Rect>(EXTRA_RECORD_RECT, Rect::class.java)
+            intent.getParcelableExtra(EXTRA_RECORD_RECT, Rect::class.java)
         } else {
             @Suppress("DEPRECATION")
-            data?.getParcelableExtra(EXTRA_RECORD_RECT)
+            intent.getParcelableExtra(EXTRA_RECORD_RECT)
         }
         videoPath = getOutputFile()
         mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -120,20 +129,17 @@ class ScreenRecordService : Service() {
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
             setVideoEncodingBitRate(512 * 1000)
             setVideoFrameRate(30)
-            setVideoSize(rect?.width() ?: DISPLAY_WIDTH, rect?.height() ?: DISPLAY_HEIGHT) // TODO: Use rectangle width and height
+            setVideoSize(rect?.width() ?: DISPLAY_WIDTH, rect?.height() ?: DISPLAY_HEIGHT)
             setOutputFile(videoPath)
-            if (rect != null) {
-                setLocation(rect.exactCenterX(), rect.exactCenterY())
-            }
             prepare()
         }
 
         virtualDisplay = mediaProjection.createVirtualDisplay(
             "ScreenRecording",
-            DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_DPI,
+            rect?.width()?: DISPLAY_WIDTH, rect?.height()?: DISPLAY_HEIGHT, DISPLAY_DPI,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             mediaRecorder?.surface, null, null
-        ) // TODO: Use rectangle width and height
+        )
 
         mediaRecorder?.start()
         isRecording = true
@@ -249,7 +255,7 @@ class ScreenRecordService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Screen Recording")
             .setContentText("Recording in progress...")
-            .setSmallIcon(R.drawable.baked_goods_1) // TODO: Replace with recording icon
+            .setSmallIcon(R.drawable.baked_goods_1)
             .setContentIntent(pendingIntent)
             .build()
     }

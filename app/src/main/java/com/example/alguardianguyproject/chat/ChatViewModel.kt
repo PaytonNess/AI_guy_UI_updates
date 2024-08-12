@@ -22,7 +22,7 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
     }
 
     fun sendMessage(message: String) {
-        viewModelScope.launch() {
+        viewModelScope.launch {
             val prompt =
                 _messages.value?.let { chatRepository.formatPrompt(message, videoTranscription, it.toList()) }
             println("prompt: $prompt")

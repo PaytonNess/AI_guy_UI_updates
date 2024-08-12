@@ -11,16 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        android:padding="16dp">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/message_list"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:paddingTop="30dp"/>
+            android:paddingTop="30dp"
+            android:fontFamily="@font/cinzel"
+            android:textStyle="bold"/>
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -35,10 +35,13 @@
                 android:layout_gravity="bottom|start"
                 android:autofillHints="Start typing..."
                 android:hint="@string/enter_message"
+                android:textColorHint="@color/white"
                 android:inputType="textMultiLine"
-                android:fontFamily="@font/my_fonts"
+                android:fontFamily="@font/cinzel"
+                android:textStyle="bold"
+                android:elevation="12dp"
                 android:textColor="@color/white"
-                android:background="@color/gray"
+                android:background="@drawable/left_rounded_background_gray"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@id/send_button"
                 app:layout_constraintStart_toStartOf="parent"
@@ -49,9 +52,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/send"
-                android:fontFamily="@font/my_fonts"
+                android:fontFamily="@font/cinzel"
+                android:textStyle="bold"
+                android:elevation="12dp"
                 android:textColor="@color/white"
-                android:background="@color/orange"
+                android:background="@drawable/right_rounded_button"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -59,14 +64,15 @@
     </LinearLayout>
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/back"
+        android:id="@+id/back_button"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_gravity="top|start"
+        android:background="@drawable/back"
+        android:contentDescription="@string/back_button"
+        android:elevation="12dp"
         android:scaleX=".5"
         android:scaleY=".5"
-        android:id="@+id/back_button"
-        android:contentDescription="@string/back_button"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

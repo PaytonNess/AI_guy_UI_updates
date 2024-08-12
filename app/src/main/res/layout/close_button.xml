@@ -2,19 +2,21 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="0dp">
 
     <Button
         android:id="@+id/CloseButton"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:background="@drawable/close"
+        android:layout_width="63dp"
+        android:layout_height="63dp"
+        android:background="@drawable/close_button"
         android:contentDescription="@string/close"
-        android:scaleX=".4"
-        android:scaleY=".4"
+        android:scaleX=".45"
+        android:scaleY=".45"
+        android:elevation="12dp"
         app:layout_constraintDimensionRatio="1:1"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

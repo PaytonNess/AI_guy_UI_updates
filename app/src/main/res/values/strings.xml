@@ -17,4 +17,6 @@
     <string name="preparing_video">Preparing video...</string>
     <string name="back_button">Back button</string>
     <string name="close">Close</string>
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
 </resources>

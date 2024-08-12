@@ -1,11 +1,6 @@
 package com.example.alguardianguyproject
 
 import android.content.Context
-import android.content.Intent
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Path
 import android.util.AttributeSet
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -17,12 +12,9 @@ import androidx.core.content.res.ResourcesCompat
 import android.view.WindowManager
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.content.ContextCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.alguardianguyproject.chat.MessageAdapter
+import kotlin.math.abs
 
 class ResizableOverlayView @JvmOverloads constructor(
     context: Context,
@@ -44,7 +36,6 @@ class ResizableOverlayView @JvmOverloads constructor(
     private lateinit var chatContainer: LinearLayout
     private lateinit var loadingContainer: LinearLayout
     private lateinit var closeContainer: LinearLayout
-    private lateinit var backContainer: LinearLayout
 
     private lateinit var chatRecyclerView: RecyclerView
     lateinit var messageInput: EditText
@@ -81,11 +72,11 @@ class ResizableOverlayView @JvmOverloads constructor(
             )
         }
         val inflater = LayoutInflater.from(context).inflate(R.layout.activity_chat, chatContainer, true)
-        chatRecyclerView = inflater.findViewById<RecyclerView>(R.id.message_list)
+        chatRecyclerView = inflater.findViewById(R.id.message_list)
         chatRecyclerView.layoutManager = LinearLayoutManager(context)
-        messageInput = inflater.findViewById<EditText>(R.id.message_input)
-        sendButton = inflater.findViewById<Button>(R.id.send_button)
-        backButton = inflater.findViewById<Button>(R.id.back_button)
+        messageInput = inflater.findViewById(R.id.message_input)
+        sendButton = inflater.findViewById(R.id.send_button)
+        backButton = inflater.findViewById(R.id.back_button)
     }
 
     private fun initCloseButton(context: Context) {
@@ -93,17 +84,14 @@ class ResizableOverlayView @JvmOverloads constructor(
             orientation = LinearLayout.HORIZONTAL
         }
         val inflater = LayoutInflater.from(context).inflate(R.layout.close_button, closeContainer, true)
-        closeButton = inflater.findViewById<Button>(R.id.CloseButton)
+        closeButton = inflater.findViewById(R.id.CloseButton)
     }
 
     private fun addCloseButton() {
         addView(closeContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
             gravity = Gravity.TOP or Gravity.END
         })
-    }
-
-    fun removeCloseButton() {
-        removeView(closeContainer)
+        closeContainer.bringToFront()
     }
 
     fun addChatComponents() {
@@ -111,6 +99,7 @@ class ResizableOverlayView @JvmOverloads constructor(
             gravity = Gravity.BOTTOM
         })
         background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border, null)
+        closeContainer.bringToFront()
     }
 
     fun removeChatComponents() {
@@ -130,9 +119,9 @@ class ResizableOverlayView @JvmOverloads constructor(
             orientation = LinearLayout.HORIZONTAL
         }
         val inflater = LayoutInflater.from(context).inflate(R.layout.activity_record, loadingContainer, true)
-        recyclerView = inflater.findViewById<RecyclerView>(R.id.recyclerView)
+        recyclerView = inflater.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context)
-        chatButton = inflater.findViewById<Button>(R.id.chatButton)
+        chatButton = inflater.findViewById(R.id.chatButton)
     }
 
     fun addLoadingComponents() {
@@ -140,6 +129,7 @@ class ResizableOverlayView @JvmOverloads constructor(
             gravity = Gravity.BOTTOM
         })
         background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border_colored, null)
+        closeContainer.bringToFront()
     }
 
     // Add a method to set the adapter for the RecyclerView
@@ -152,8 +142,8 @@ class ResizableOverlayView @JvmOverloads constructor(
             orientation = LinearLayout.HORIZONTAL
         }
         val inflater1 = LayoutInflater.from(context).inflate(R.layout.send_button, buttonContainer, true)
-        startButton = inflater1.findViewById<Button>(R.id.SendButton)
-        startButton.text = "Record"
+        startButton = inflater1.findViewById(R.id.SendButton)
+        startButton.text = context.getString(R.string.record)
     }
 
     fun addRecordComponents() {
@@ -162,14 +152,15 @@ class ResizableOverlayView @JvmOverloads constructor(
             gravity = Gravity.BOTTOM
         })
         background = ResourcesCompat.getDrawable(resources, R.drawable.resizable_border, null)
+        closeContainer.bringToFront()
     }
 
     fun switchToStopButton() {
-        startButton.text = "Stop"
+        startButton.text = context.getString(R.string.stop)
     }
 
     fun switchToStartButton() {
-        startButton.text = "Record"
+        startButton.text = context.getString(R.string.record)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -181,19 +172,25 @@ class ResizableOverlayView @JvmOverloads constructor(
             }
             MotionEvent.ACTION_MOVE -> {
                 if (activePointerId != INVALID_POINTER_ID) {
-                    val pointerIndex = event.findPointerIndex(activePointerId)
                     val x = event.rawX
                     val y = event.rawY
-
+                    val center = getCenterCoordinates()
                     val dx = x - lastTouchX
                     val dy = y - lastTouchY
 
-                    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    if (abs(dx) > 5 || abs(dy) > 5) {
                         val params = layoutParams as WindowManager.LayoutParams
 
-                        // Move the view
-                        params.x += dx.toInt()
-                        params.y += dy.toInt()
+                        if (isInResizeRange(x - center.first, y - center.second)) {
+                            // Resize the view
+                            params.width = (width + dx).toInt().coerceAtLeast(minWidth)
+                            params.height = (height + dy).toInt().coerceAtLeast(minHeight)
+                        }
+                        else {
+                            // Move the view
+                            params.x += dx.toInt()
+                            params.y += dy.toInt()
+                        }
 
                         windowManager.updateViewLayout(this, params)
 
@@ -211,8 +208,20 @@ class ResizableOverlayView @JvmOverloads constructor(
 
 
     private fun isInResizeRange(x: Float, y: Float): Boolean {
-        val threshold = 100 // Increase threshold for easier resizing
-        return (x > width - threshold && y > height - threshold)
+        val threshold = 50 // Increase threshold for easier resizing
+        return (x > width / 2 - threshold || y > height / 2 - threshold)
+    }
+
+    private fun getCenterCoordinates(): Pair<Float, Float> {
+        val location = IntArray(2)
+        getLocationOnScreen(location)
+
+        val x = location[0] + width / 2
+        val y = location[1] + height / 2
+
+        // Now you have the x and y coordinates of the view
+        println("My coordinates: x=$x, y=$y")
+        return x.toFloat() to y.toFloat()
     }
 
     companion object {

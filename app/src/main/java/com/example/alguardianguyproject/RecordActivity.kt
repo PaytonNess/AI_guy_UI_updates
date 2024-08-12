@@ -13,7 +13,6 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
 
 class RecordActivity: AppCompatActivity() {
     private var isRecording = false
@@ -74,6 +73,19 @@ class RecordActivity: AppCompatActivity() {
             action = ScreenRecordService.ACTION_START
             putExtra(ScreenRecordService.EXTRA_RESULT_CODE, result.resultCode)
             putExtra(ScreenRecordService.EXTRA_DATA, intentData)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                putExtra(
+                    ScreenRecordService.EXTRA_RECORD_RECT,
+                    intent.getParcelableExtra("RECT", Rect::class.java)
+                )
+            }
+            else {
+                @Suppress("DEPRECATION")
+                putExtra(
+                    ScreenRecordService.EXTRA_RECORD_RECT,
+                    intent.getParcelableExtra<Rect>("RECT")
+                )
+            }
         }
         println("start screen recording")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -86,7 +98,7 @@ class RecordActivity: AppCompatActivity() {
         finish()
     }
 
-    fun startRecording() {
+    private fun startRecording() {
         println("start recording")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             // Android 14 and above
@@ -105,18 +117,5 @@ class RecordActivity: AppCompatActivity() {
                 ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.RECORD_AUDIO), requestCodeScreenCapture)
             }
         }
-    }
-
-    fun stopRecording() {
-        val intent = Intent(this, ScreenRecordService::class.java).apply {
-            action = ScreenRecordService.ACTION_STOP
-        }
-        startService(intent)
-        isRecording = false
-    }
-
-    private fun getOverlayRect(): Rect {
-        // Use a default Rect if needed
-        return Rect(0, 0, 100, 100)
     }
 }

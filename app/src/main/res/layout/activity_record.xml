@@ -9,7 +9,9 @@
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1"
+        android:fontFamily="@font/cinzel"
+        android:textStyle="bold"/>
 
     <Button
         android:id="@+id/chatButton"
@@ -17,7 +19,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:text="Chat"
-        android:fontFamily="@font/my_fonts"
+        android:fontFamily="@font/cinzel"
+        android:textStyle="bold"
+        android:elevation="12dp"
         android:textColor="@color/white"
         android:background="@drawable/rounded_button_background"/>
 

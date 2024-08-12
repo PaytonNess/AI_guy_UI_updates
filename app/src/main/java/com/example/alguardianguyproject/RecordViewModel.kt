@@ -4,17 +4,12 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arthenica.mobileffmpeg.Config
 import com.arthenica.mobileffmpeg.FFmpeg
 import com.example.alguardianguyproject.video.MediaItem
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -24,9 +19,9 @@ import java.io.File
 
 class RecordViewModel(application: Application): AndroidViewModel(application) {
 
-    private val _completedStages = MutableLiveData<List<Int>>(List(10) { 0 })
+    private val _completedStages = MutableLiveData(List(10) { 0 })
     val completedStages: LiveData<List<Int>> = _completedStages
-    private val _progress = MutableLiveData<Double>(0.0)
+    private val _progress = MutableLiveData(0.0)
     val progress: LiveData<Double> = _progress
     private val repository = VideoDiscussionRepository()
     private val fileManagement = FileManagementRepository()
@@ -47,11 +42,12 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
         val requestBody = videoFile.asRequestBody("video/mp4".toMediaTypeOrNull())
         val multipartBody = MultipartBody.Part.createFormData("mediaFile", videoFile.name, requestBody)
 
-        viewModelScope.launch() {
+        viewModelScope.launch {
             try {
                 val response = repository.uploadVideo(multipartBody)
                 if (response != null) {
                     videoUri = response.uri
+                    println("videoUri: $videoUri")
                     videoName = response.name
                     withContext(Dispatchers.Main) {
                         updateCompletedStage(0, 1)
@@ -88,7 +84,7 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
                     val requestBody = audioFile.asRequestBody("audio/mp3".toMediaTypeOrNull())
                     val multipartBody =
                         MultipartBody.Part.createFormData("mediaFile", audioFile.name, requestBody)
-                    viewModelScope.launch() {
+                    viewModelScope.launch {
                         val response = repository.uploadVideo(multipartBody)
                         if (response != null) {
                             audioUri = response.uri
@@ -113,7 +109,7 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
             } else {
                 0f // Handle cases where size is zero to avoid division by zero
             }
-            viewModelScope.launch() {
+            viewModelScope.launch {
                 withContext(Dispatchers.Main) {
                     _progress.value = progressEstimate.toDouble()
                 }
@@ -122,12 +118,11 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
         }
     }
 
-    @OptIn(InternalCoroutinesApi::class)
     private suspend fun checkFileStatus() {
-        var processing = true;
+        var processing = true
         var status = "PROCESSING"
         while (processing) {
-            viewModelScope.launch() {
+            viewModelScope.launch {
                 println("video: $videoName")
                 println("audio: $audioName")
                 val paths = listOfNotNull(
@@ -151,7 +146,7 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun transcribeVideo() {
-        viewModelScope.launch() {
+        viewModelScope.launch {
             val transcriptionResponse = repository.transcribeVideo(
                 listOfNotNull(
                     videoUri.takeIf { it.isNotEmpty() }?.let { MediaItem("video/mp4", it) },

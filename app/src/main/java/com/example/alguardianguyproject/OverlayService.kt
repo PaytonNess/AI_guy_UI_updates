@@ -1,27 +1,19 @@
 package com.example.alguardianguyproject
 
-import android.app.Activity
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
-import android.widget.Button
-import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStore
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.recyclerview.widget.RecyclerView
 import com.example.alguardianguyproject.chat.ChatViewModel
 import com.example.alguardianguyproject.chat.MessageAdapter
 import com.example.alguardianguyproject.video.RecordAdapter
-import kotlinx.coroutines.cancel
 
 class OverlayService : Service() {
 
@@ -144,6 +136,7 @@ class OverlayService : Service() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK // Required to start an Activity from a Service
         val rect = Rect()
         overlayView.getGlobalVisibleRect(rect)
+        println("overlayView rect: $rect")
         intent.putExtra("RECT", rect)
         startActivity(intent, options.toBundle())
     }
