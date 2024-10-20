@@ -5,6 +5,7 @@ import com.example.alguardianguyproject.ApiConstants.GET_VIDEO_STATUS_ENDPOINT
 import com.example.alguardianguyproject.ApiConstants.SEND_FILES_ENDPOINT
 import com.example.alguardianguyproject.ApiConstants.SEND_MESSAGE_ENDPOINT
 import com.example.alguardianguyproject.ApiConstants.UPLOAD_VIDEO_ENDPOINT
+import com.example.alguardianguyproject.chat.SendMessageRequest
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -27,7 +28,7 @@ interface VideoStatusService {
 
 interface SendFilesService {
     @POST(SEND_FILES_ENDPOINT)
-    suspend fun checkStatus(@Body files: List<MediaItem>): Response<UploadResponse>
+    suspend fun sendFiles(@Body files: List<MediaItem>): Response<UploadResponse>
 }
 
 interface DeleteFileService {
@@ -37,5 +38,5 @@ interface DeleteFileService {
 
 interface SendMessageService {
     @POST(SEND_MESSAGE_ENDPOINT)
-    suspend fun sendMessage(@Body file: String): Response<UploadResponse>
+    suspend fun sendMessage(@Body sendMessageRequest: SendMessageRequest): Response<UploadResponse>
 }

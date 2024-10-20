@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <LinearLayout
+        android:id="@+id/buttonLayout"
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:clipChildren="false"
+        android:layout_marginBottom="29dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/review_something"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="282dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:textAllCaps="false"
+            android:fontFamily="@font/outfit_medium"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:background="@drawable/menu_button_background"
+            android:layout_marginBottom="16dp"
+            android:text="@string/review_something" />
+
+        <Spinner
+            android:id="@+id/my_spinner"
+            android:layout_width="282dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:textAllCaps="false"
+            android:fontFamily="@font/outfit_medium"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:background="@drawable/menu_button_background"
+            android:spinnerMode="dropdown"
+            android:popupBackground="@color/mid_transparent_black"
+            />
+
+        <Button
+            android:id="@+id/saved_conversations"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="282dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:textAllCaps="false"
+            android:fontFamily="@font/outfit_medium"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:background="@drawable/menu_button_background"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.5"
+            android:text="@string/saved_conversations" />
+
+        <Button
+            android:id="@+id/settings"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="282dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:textAllCaps="false"
+            android:fontFamily="@font/outfit_medium"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:background="@drawable/menu_button_background"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.5"
+            android:text="@string/settings" />
+
+        <Button
+            android:id="@+id/human_assistance"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="282dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_gravity="center_horizontal"
+            android:fontFamily="@font/outfit_medium"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="21sp"
+            android:background="@drawable/menu_button_background"
+            android:layout_marginBottom="16dp"
+            android:alpha="0.5"
+            android:text="@string/human_assistance" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

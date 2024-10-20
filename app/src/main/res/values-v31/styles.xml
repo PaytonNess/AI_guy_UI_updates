@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">@color/splash_background</item>
+        <item name="android:windowBackground">@color/splash_background</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>"
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <item name="android:windowFullscreen">true</item>"
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:animateFirstView">false</item>
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@null</item>
+        <item name="android:windowExitTransition">@null</item>
+        <item name="android:windowEnterTransition">@null</item>
+    </style>
+</resources>

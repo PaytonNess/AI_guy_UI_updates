@@ -30,11 +30,11 @@ class MessageItemView @JvmOverloads constructor(
 
         if (message.isUser) {
             gravity = Gravity.END
-            setBackgroundColor(ContextCompat.getColor(context, R.color.gray)) // Example background color
+            setBackgroundResource(R.drawable.user_message_background) // Example background color
             messageTextView.setTextColor(Color.WHITE) // Example text color
         } else {
             gravity = Gravity.START
-            setBackgroundColor(ContextCompat.getColor(context, R.color.blue)) // Example background color
+            setBackgroundResource(R.drawable.model_message_background) // Example background color
             messageTextView.setTextColor(Color.WHITE) // Example text color
         }
     }

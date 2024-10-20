@@ -53,6 +53,9 @@ class RecordViewModel(application: Application): AndroidViewModel(application) {
                         updateCompletedStage(0, 1)
                     }
                 }
+                else {
+                    throw Exception("Response is null")
+                }
             } catch(e: Exception) {
                 println("error uploading video: $e")
             }

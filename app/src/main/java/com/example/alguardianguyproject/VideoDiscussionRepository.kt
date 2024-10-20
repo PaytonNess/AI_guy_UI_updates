@@ -1,5 +1,6 @@
 package com.example.alguardianguyproject
 
+import com.example.alguardianguyproject.chat.SendMessageRequest
 import com.example.alguardianguyproject.video.MediaItem
 import com.example.alguardianguyproject.video.MediaRequest
 import com.example.alguardianguyproject.video.RetrofitClient
@@ -44,7 +45,7 @@ class VideoDiscussionRepository {
     }
 
     suspend fun transcribeVideo(files: List<MediaItem>): String {
-        val response = RetrofitClient.sendFilesService.checkStatus(files)
+        val response = RetrofitClient.sendFilesService.sendFiles(files)
 
         if (response.isSuccessful) {
             val message = response.body()?.message
@@ -69,8 +70,14 @@ class VideoDiscussionRepository {
         }
     }
 
-    suspend fun sendMessage(message: String): String {
-        val response = RetrofitClient.sendMessageService.sendMessage(message)
+    suspend fun sendMessage(message: String, model: String? = null, company: String): String {
+
+        var request = SendMessageRequest(message, model, company)
+        if (model.isNullOrEmpty()) {
+            request = SendMessageRequest(message, null, company)
+        }
+
+        val response = RetrofitClient.sendMessageService.sendMessage(request)
         if (response.isSuccessful) {
             val responseMessage = response.body()?.message
             return responseMessage.toString()

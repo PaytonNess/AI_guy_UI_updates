@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/transparent"
+    android:clickable="false"
+    android:focusable="false">
+
+    <ImageView
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/corner"
+        android:src="@drawable/resizable_border"
+        android:rotation="180"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:layout_marginTop="29dp"
+        android:layout_marginBottom="29dp"
+        />
+
+    <ImageView
+        android:id="@+id/topLeftImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/corner"
+        android:src="@drawable/corner"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:rotation="0"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_marginTop="27dp"/>
+
+    <ImageView
+        android:id="@+id/topRightImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/corner"
+        android:src="@drawable/corner"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:rotation="90"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_marginTop="27dp"/>
+
+    <ImageView
+        android:id="@+id/bottomLeftImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/corner"
+        android:src="@drawable/corner"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:rotation="270"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_marginBottom="27dp"/>
+
+    <ImageView
+        android:id="@+id/bottomRightImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/corner"
+        android:src="@drawable/corner"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:rotation="180"
+        android:clickable="false"
+        android:focusable="false"
+        android:layout_marginBottom="27dp"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

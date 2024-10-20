@@ -26,12 +26,7 @@ import android.os.Build
 import android.os.Build.VERSION_CODES.TIRAMISU
 import android.os.IBinder
 import android.view.Surface
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.TextureView
-import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.FrameLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModelProvider

@@ -3,16 +3,23 @@ package com.example.alguardianguyproject
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.view.WindowManager
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.content.res.ResourcesCompat
 
 class RecordActivity: AppCompatActivity() {
     private var isRecording = false
@@ -20,8 +27,15 @@ class RecordActivity: AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setTheme(android.R.style.Theme_Translucent_NoTitleBar) // Make the Activity invisible
-        // ... rest of your initialization ...
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+        window.statusBarColor = Color.TRANSPARENT
+        window.navigationBarColor = Color.TRANSPARENT
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            setTranslucent(true)
+        }
         startRecording()
     }
 
@@ -87,6 +101,7 @@ class RecordActivity: AppCompatActivity() {
                 )
             }
         }
+
         println("start screen recording")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(recordIntent)
@@ -105,7 +120,8 @@ class RecordActivity: AppCompatActivity() {
             requestPermissionLauncher.launch(arrayOf(
                 android.Manifest.permission.RECORD_AUDIO,
                 android.Manifest.permission.FOREGROUND_SERVICE,
-                android.Manifest.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION
+                android.Manifest.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION,
+                android.Manifest.permission.BIND_ACCESSIBILITY_SERVICE
             ))
         } else {
             // Older Android versions that don't support ForegroundService

@@ -4,6 +4,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:padding="16dp"
-    android:textSize="16sp"
-    android:fontFamily="@font/cinzel"
-    android:textStyle="bold"/>
+    android:textSize="22.5sp"
+    android:textAllCaps="false"
+    android:fontFamily="@font/outfit_regular"
+    android:textColor="@color/white"
+    />

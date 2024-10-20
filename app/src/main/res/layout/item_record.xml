@@ -6,20 +6,20 @@
     android:padding="8dp"
     android:gravity="center_vertical">
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="16dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="2dp"
+        android:contentDescription="@string/progress_icon"
+        android:elevation="12dp"/>
+
     <TextView
         android:id="@+id/rowTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:fontFamily="@font/cinzel"
+        android:fontFamily="@font/roboto"
         android:textStyle="bold"
         android:textColor="@color/white"/>
-
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_marginStart="2dp"
-        android:elevation="12dp"/>
-
 </LinearLayout>

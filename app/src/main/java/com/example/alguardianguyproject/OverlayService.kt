@@ -7,8 +7,11 @@ import android.graphics.PixelFormat
 import android.graphics.Rect
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import android.view.Gravity
+import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.Button
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.alguardianguyproject.chat.ChatViewModel
@@ -34,8 +37,8 @@ class OverlayService : Service() {
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
 
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            400,
+            500,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else
@@ -82,7 +85,10 @@ class OverlayService : Service() {
         overlayView.sendButton.setOnClickListener {
             val newMessageText = overlayView.messageInput.text.toString()
             if (newMessageText.isNotBlank()) {
-                chatViewModel.sendMessage(newMessageText)
+                // TODO: comment for production
+                chatViewModel.sendMessage(newMessageText, overlayView.modelTextField.text.toString(), overlayView.modelSpinner.selectedItem.toString())
+                // TODO: uncomment for production
+//                chatViewModel.sendMessage(newMessageText, null, "Google")
                 overlayView.messageInput.text.clear()
             }
         }
@@ -92,35 +98,88 @@ class OverlayService : Service() {
         overlayView.chatButton.setOnClickListener {
             overlayView.removeLoadingComponents()
             overlayView.addChatComponents()
+            overlayView.addMenuComponents()
             chatViewModel.setVideoTranscription(recordViewModel.getVideoTranscription())
-        }
 
-        overlayView.backButton.setOnClickListener {
-            overlayView.removeChatComponents()
-            overlayView.addRecordComponents()
-            recordViewModel.reset()
-            chatViewModel.reset()
-            setStartButtonListener()
+            overlayView.setMenuButtonToClosedState()
+            setMenuButtonListener()
         }
 
         overlayView.closeButton.setOnClickListener {
             stopRecording()
             stopSelf()
         }
+
+        setMenuButtonListener()
+
+        overlayView.menuHomeView.reviewSomethingButton.setOnClickListener {
+
+            overlayView.removeMenuHomeView()
+
+            startRecording()
+            overlayView.recording = true
+
+            overlayView.setMenuButtonToClosedState()
+            overlayView.menuButton.setText(R.string.stop)
+            overlayView.menuButton.setOnClickListener {
+                stopRecording()
+                overlayView.addLoadingComponents()
+                overlayView.removeRecordComponents()
+                overlayView.removeMenuComponents()
+                overlayView.recording = false
+            }
+        }
+//        overlayView.menuHomeView.savedConversations.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+//        overlayView.menuHomeView.settingsButton.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+//        overlayView.menuHomeView.humanAssistance.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+        overlayView.menuChatView.homeButton.setOnClickListener {
+            overlayView.removeChatComponents()
+            overlayView.removeMenuChatView()
+            recordViewModel.reset()
+            chatViewModel.reset()
+        }
+//        overlayView.menuChatView.deleteConversation.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+//        overlayView.menuChatView.settingsButton.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+//        overlayView.menuChatView.humanAssistance.setOnClickListener {
+//            TODO("Not yet implemented")
+//        }
+    }
+
+    private fun setMenuButtonListener() {
+        overlayView.menuButton.setOnClickListener {
+            if (overlayView.chatOpen) {
+                if (overlayView.menuChatView.opened) {
+                    overlayView.removeMenuChatView()
+                    overlayView.setMenuButtonToClosedState()
+                } else {
+                    overlayView.addMenuChatView()
+                    overlayView.setMenuButtonToOpenState()
+                }
+            }
+            else {
+                if (overlayView.menuHomeView.opened) {
+                    overlayView.removeMenuHomeView()
+                    overlayView.setMenuButtonToClosedState()
+                } else {
+                    overlayView.addMenuHomeView()
+                    overlayView.setMenuButtonToOpenState()
+                }
+            }
+        }
     }
 
     private fun setStartButtonListener() {
         overlayView.switchToStartButton()
-        overlayView.startButton.setOnClickListener {
-            startRecording()
-            overlayView.switchToStopButton()
-
-            overlayView.startButton.setOnClickListener {
-                stopRecording()
-                overlayView.addLoadingComponents()
-                overlayView.removeRecordComponents()
-            }
-        }
     }
 
     private fun updateUi(completedStages: List<Int>, progress: Double) {

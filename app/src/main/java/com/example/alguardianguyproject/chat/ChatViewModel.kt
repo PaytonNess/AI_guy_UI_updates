@@ -21,7 +21,7 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
         _messages.value = emptyList() // Initialize with an empty list
     }
 
-    fun sendMessage(message: String) {
+    fun sendMessage(message: String, modelName: String? = null, company: String) {
         viewModelScope.launch {
             val prompt =
                 _messages.value?.let { chatRepository.formatPrompt(message, videoTranscription, it.toList()) }
@@ -30,10 +30,8 @@ class ChatViewModel(application: Application): AndroidViewModel(application) {
             withContext(Dispatchers.Main) {
                 _messages.value = _messages.value?.plus(Message(message, true))
             }
-            var response = videoRepository.sendMessage("hello")
-            println("response: $response")
             if (prompt != null) {
-                response = videoRepository.sendMessage(prompt)
+                val response = videoRepository.sendMessage(prompt, modelName, company)
                 if (response.isNotEmpty()) {
                     withContext(Dispatchers.Main) {
                         _messages.value = _messages.value?.plus(Message(response, false))

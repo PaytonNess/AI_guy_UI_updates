@@ -8,15 +8,36 @@
     <string name="image2_description">Cookies</string>
     <string name="image3_description">Cake</string>
     <string name="results_placeholder">(Results will appear here)</string>
-    <string name="recording">Recording...</string>
+    <string name="recording">Recording…</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="enter_message">Enter message</string>
+    <string name="enter_message">Enter your message…</string>
     <string name="send">Send</string>
     <string name="chat">Chat</string>
-    <string name="preparing_video">Preparing video...</string>
+    <string name="preparing_video">Preparing video</string>
     <string name="back_button">Back button</string>
     <string name="close">Close</string>
     <string name="record">Record</string>
     <string name="stop">Stop</string>
+    <string name="corner">corner</string>
+    <string name="progress_icon">Progress Icon</string>
+    <string name="enter_text">enter a model name</string>
+    <string name="review_something">Review Something</string>
+    <string name="saved_conversations">Saved Conversations</string>
+    <string name="settings">Settings</string>
+    <string name="human_assistance">Human Assistance</string>
+    <string name="menu">Menu</string>
+    <string name="delete_conversation">Delete Conversation</string>
+    <string name="home">Home</string>
+    <string name="mediaType">Media Type: %1$s</string>
+    <string-array name="dropdown_options">
+        <item>None</item>
+        <item>Youtube</item>
+        <item>Facebook</item>
+        <item>TikTok</item>
+    </string-array>
+    <string-array name="model_options">
+        <item>Google</item>
+        <item>OpenAI</item>
+    </string-array>
 </resources>
