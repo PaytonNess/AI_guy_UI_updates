@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.alguardianguyproject"
+    namespace = "com.sleepinggrizzly.alguardianguyproject"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.alguardianguyproject"
+        applicationId = "com.sleepinggrizzly.alguardianguyproject"
         minSdk = 29
         targetSdk = 34
         versionCode = 1
